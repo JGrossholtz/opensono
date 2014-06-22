@@ -1,6 +1,6 @@
 [submodule "raspberry-pi/buildroot"]
 	path = raspberry-pi/buildroot
-	url = git://git.buildroot.net/buildroot
+	url = https://github.com/JGrossholtz/opensono.buildroot.raspberrypi 
 [submodule "raspberry-pi/wifi/rtl8188eu"]
 	path = raspberry-pi/wifi/rtl8188eu
 	url = https://github.com/lwfinger/rtl8188eu
