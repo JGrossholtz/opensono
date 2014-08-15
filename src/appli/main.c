@@ -1,23 +1,25 @@
 #include <stdio.h>
+#include <string.h>
 
 #include "util.h"
+#include "network_server.h"
+#include "network_client.h"
 
-int main(){
-	init_multicast_server();
 
-	int data = 0;
-	char buff[100];
+#define SERVER "--server"
 
-	sleep(2);
-	while(1){
-		
-		snprintf(buff,100,"data=%d",data);
-		data++;
-
-		printf("sending %d\n",data -1);
-		multicast_server_send(buff,100 * sizeof(char));
-
-		sleep(1);
+int main( int argc, char *argv[] ){
+	
+	if(argv[1] != NULL && strncmp(argv[1],SERVER,strlen(SERVER)) == 0){
+		printf("Starting openson as Server (recorder) \n");
+		init_multicast_server();
+		start_acquisition();
+	}else{
+		printf("Starting openson as client (player)\n");
+		init_multicast_client();
+		printf("client network started\n");
+ 		start_playback ();
 	}
+
 
 }

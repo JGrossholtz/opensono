@@ -3,7 +3,7 @@
 	#include <alsa/asoundlib.h>
 	#include <stdint.h>
 	
-	#define BUFFSIZE 8
+	#define BUFFSIZE 128
 int start_acquisition()
 	{
 		int i;
@@ -83,6 +83,7 @@ int start_acquisition()
 			multicast_server_send(buf, sizeof(uint32_t) *  frames_to_deliver);
 			//fwrite(buf,sizeof(uint32_t),frames_to_deliver,output);
 			//printf("read=%ld pos=%ld\n",frames_to_deliver,ftell(output));
+			frames_to_deliver =  BUFFSIZE;//snd_pcm_avail_update(capture_handle);
 		}
 	
 		snd_pcm_close (capture_handle);

@@ -10,10 +10,6 @@
 #include "util.h"
 #include "common.h"
 
-#define IPADDR_1_FOR_TEST "192.168.1.27"
-#define IPADDR_2_FOR_TEST "192.168.1.101"
-#define IPADDR_3_FOR_TEST "192.168.1.102"
-
 struct sockaddr_in clientsSock;
 int socket_descriptor;
 
@@ -36,13 +32,10 @@ int init_multicast_server(){
 	clientsSock.sin_addr.s_addr = inet_addr(MULTICAST_GROUP);
 	clientsSock.sin_port = htons(OPENSONO_DATA_PORT);
 
-	if( get_wireless_iface_ipaddr(srvIPstr, socket_descriptor) < 0){
-		return -2;
-	}
 
 	//Set server's own IP
 	printf("Server's IP = %s\n",srvIPstr);
-	ServerInterface.s_addr = inet_addr(srvIPstr);
+	ServerInterface.s_addr = inet_addr("192.168.1.20");
 
 
 	//Tell that we want to send data in multicast
@@ -50,10 +43,9 @@ int init_multicast_server(){
 		printf("Cannot set options to socket\n");
 		return -3;
 	}
-
-	return 1; //success !
 	
-
+	printf("server network initialized...\n");
+	return 1;
 }
 
 
