@@ -6,16 +6,16 @@
 #include <stdint.h>
 
 #include "network_client.h"
+#include "network_client_server.h"
 
 snd_pcm_t *playback_handle;
-uint32_t buf[4096];
+sample buf[NBR_SAMPLES_IN_PACKET];
 FILE *output;	
 
 int playback_callback (snd_pcm_sframes_t nframes){
 	int err = 0;
 	usleep(10000);
-	err = multicast_client_receive( buf, sizeof(uint32_t) * nframes );
-	err/=32;
+	err = multicast_client_receive( buf );
 	printf("just received from network = %d frames\n",err);
 	
 	if ((err = snd_pcm_writei (playback_handle, buf, err)) < 0) {
@@ -33,7 +33,7 @@ void start_playback (){
 		int nfds;
 		int err;
 		struct pollfd *pfds;
-	
+		unsigned int rate;
 		if ((err = snd_pcm_open (&playback_handle, "default", SND_PCM_STREAM_PLAYBACK, 0)) < 0) {
 			fprintf (stderr, "cannot open audio device (%s)\n", 
 				 snd_strerror (err));
@@ -64,7 +64,7 @@ void start_playback (){
 			exit (1);
 		}
 		
-		unsigned int rate = 44100;	
+		rate = 44100;	
 		if ((err = snd_pcm_hw_params_set_rate_near (playback_handle, hw_params, &rate, 0)) < 0) {
 			fprintf (stderr, "cannot set sample rate (%s)\n",
 				 snd_strerror (err));

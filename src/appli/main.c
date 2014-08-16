@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "util.h"
 #include "network_server.h"
 #include "network_client.h"
 

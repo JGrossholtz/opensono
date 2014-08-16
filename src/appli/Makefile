@@ -9,7 +9,6 @@ BUILDROOT_LIBS=-L$(BUILDROOT_PATH)/output/target/usr/lib32
 OBJECTS=	main.o \
 			network_server.o\
 			network_client.o\
-			util.o\
 			capture.o\
 			player.o
 

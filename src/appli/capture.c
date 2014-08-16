@@ -3,12 +3,14 @@
 	#include <alsa/asoundlib.h>
 	#include <stdint.h>
 	
-	#define BUFFSIZE 128
+	#include "network_client_server.h"
+
+	
 int start_acquisition()
 	{
 		int i;
 		int err;
-		uint32_t buf[BUFFSIZE];
+		sample buf[NBR_SAMPLES_IN_PACKET];
 		snd_pcm_t *capture_handle;
 		snd_pcm_hw_params_t *hw_params;
 		snd_pcm_sframes_t frames_to_deliver;
@@ -71,19 +73,18 @@ int start_acquisition()
 		
 
 		
-		frames_to_deliver =  BUFFSIZE;//snd_pcm_avail_update(capture_handle);
+//		frames_to_deliver =  BUFFSIZE;//snd_pcm_avail_update(capture_handle);
 
 		for (;;) {
-			if ((err = snd_pcm_readi (capture_handle, buf, frames_to_deliver)) != frames_to_deliver) {
+			if ((err = snd_pcm_readi (capture_handle, buf, NBR_SAMPLES_IN_PACKET)) != NBR_SAMPLES_IN_PACKET) {
 				fprintf (stderr, "read from audio interface failed (%s)\n",
 					 snd_strerror (err));
 				exit (1);
 			}
 			
-			multicast_server_send(buf, sizeof(uint32_t) *  frames_to_deliver);
+			multicast_server_send(buf);
 			//fwrite(buf,sizeof(uint32_t),frames_to_deliver,output);
 			//printf("read=%ld pos=%ld\n",frames_to_deliver,ftell(output));
-			frames_to_deliver =  BUFFSIZE;//snd_pcm_avail_update(capture_handle);
 		}
 	
 		snd_pcm_close (capture_handle);
