@@ -43,7 +43,6 @@ int init_multicast_client(){
 		exit(1);
 	}         
 
-
 	printf("client network ready\n");
 }
 
@@ -55,6 +54,7 @@ size_t multicast_client_receive(sample * buf){
 		close(sock_descr);
 		exit(1);
 	}
-	printf("dump received : 0x%08x\n",buf[0]);
+	
 	return count;
 }
+

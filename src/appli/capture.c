@@ -71,20 +71,14 @@ int start_acquisition()
 			exit (1);
 		}
 		
-
 		
-//		frames_to_deliver =  BUFFSIZE;//snd_pcm_avail_update(capture_handle);
-
 		for (;;) {
 			if ((err = snd_pcm_readi (capture_handle, buf, NBR_SAMPLES_IN_PACKET)) != NBR_SAMPLES_IN_PACKET) {
 				fprintf (stderr, "read from audio interface failed (%s)\n",
-					 snd_strerror (err));
+				snd_strerror (err));
 				exit (1);
 			}
-			
 			multicast_server_send(buf);
-			//fwrite(buf,sizeof(uint32_t),frames_to_deliver,output);
-			//printf("read=%ld pos=%ld\n",frames_to_deliver,ftell(output));
 		}
 	
 		snd_pcm_close (capture_handle);

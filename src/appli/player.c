@@ -14,14 +14,17 @@ FILE *output;
 
 int playback_callback (snd_pcm_sframes_t nframes){
 	int err = 0;
-	usleep(10000);
-	err = multicast_client_receive( buf );
-	printf("just received from network = %d frames\n",err);
-	
-	if ((err = snd_pcm_writei (playback_handle, buf, err)) < 0) {
-		fprintf (stderr, "write failed (%s)\n", snd_strerror (err));
-	}
+	int i;
 
+	
+	for(i=0;i<nframes;i++){
+		err = multicast_client_receive( buf );
+		//printf("just received from network = %d frames\n",err);
+
+		if ((err = snd_pcm_writei (playback_handle, buf, NBR_SAMPLES_IN_PACKET)) < 0) {
+			fprintf (stderr, "write failed (%s)\n", snd_strerror (err));
+		}
+	}
 	return err;
 }
 

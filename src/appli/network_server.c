@@ -32,20 +32,14 @@ int init_multicast_server(){
 	return 1;
 }
 
-int i = 0;
 int multicast_server_send(sample * buf){
-	ssize_t sended = 0;
-	buf[0]=0;
-	printf("dump received : 0x%08x\n",buf[0]);
-	sended = sendto(socket_descriptor, buf, PAYLOAD_PACKET_SIZE,  0, (struct sockaddr*)&clientsSock, sizeof(clientsSock));
+	ssize_t sended;
+	
+	sended = sendto(socket_descriptor, buf, PACKET_SIZE,  0, (struct sockaddr*)&clientsSock, sizeof(clientsSock));
 	if(sended < 0){
-		printf("bof !!\n");
+		printf("We where not able to send data (TODO try to fix network in this case) \n");
 	}
 	
-	//printf("data sent = %zu \n",sended);
-	printf("dump received : 0x%08x (sended=%zu)\n",buf[0],sended);
-	i++;
 	return sended;
 }
-
 
