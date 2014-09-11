@@ -1,1 +1,4 @@
 *.swp
+*.o
+opensono_arm
+opensono_x86
