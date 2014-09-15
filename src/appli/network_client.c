@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <pthread.h>
 
+#include "sample_ring_buffer.h"
 
 #include "network_client_server.h"
 #include "network_client.h"
@@ -70,6 +71,9 @@ void *multicast_data_reception_thread(void * param){
 	sample buf[PACKET_SIZE];
 	ssize_t count;
 
+	
+	ring_buffer_T* buffer =  init_sample_ring_buffer(4096);
+
 	for(;;){
 		bzero(buf,PACKET_SIZE);
 		if(count = recvfrom(sock_descr,buf,PACKET_SIZE,0,(struct sockaddr*) &clientsSock,&clients_sock_size) < 0){
@@ -78,6 +82,7 @@ void *multicast_data_reception_thread(void * param){
 			exit(1);
 		}
 		
+		sample_ring_buffer_write(buffer, &buf,  NBR_SAMPLES_IN_PACKET);
 		//TODO : add data to ring buffer here
 	
 	}
