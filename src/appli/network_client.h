@@ -6,5 +6,6 @@
 
 int init_multicast_client();
 size_t multicast_client_receive(sample * buf);
+void *multicast_data_reception_thread(void *param);
 
 #endif

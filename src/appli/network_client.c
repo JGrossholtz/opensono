@@ -5,17 +5,26 @@
 #include <netinet/in.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <pthread.h>
 
 
 #include "network_client_server.h"
+#include "network_client.h"
 
-
+// variables related with multicast network
 int sock_descr;
 struct sockaddr_in clientsSock;
 socklen_t clients_sock_size;
 
-int init_multicast_client(){
+//variables related with receiver thread
+pthread_t multicast_reception_thread;
+pthread_attr_t attr;
 
+int init_multicast_client(){
+	int retval;
+	/*
+	 * First init the multicast networking to reiceive samples from the server
+	 */
 	struct ip_mreq group;
 
 	sock_descr = socket(AF_INET, SOCK_DGRAM, 0);
@@ -44,8 +53,36 @@ int init_multicast_client(){
 	}         
 
 	printf("client network ready\n");
+
+
+	/*
+	 * Start receiver thread
+	 */
+	pthread_attr_init(&attr);
+	pthread_attr_setdetachstate(&attr,PTHREAD_CREATE_DETACHED); //The reception thread will handle it's stop by itself
+
+	retval =  pthread_create(&multicast_reception_thread, &attr, multicast_data_reception_thread, NULL); 
+
 }
 
+
+void *multicast_data_reception_thread(void * param){
+	sample buf[PACKET_SIZE];
+	ssize_t count;
+
+	for(;;){
+		bzero(buf,PACKET_SIZE);
+		if(count = recvfrom(sock_descr,buf,PACKET_SIZE,0,(struct sockaddr*) &clientsSock,&clients_sock_size) < 0){
+			perror("Reading datagram message error");
+			close(sock_descr);
+			exit(1);
+		}
+		
+		//TODO : add data to ring buffer here
+	
+	}
+
+}
 
 size_t multicast_client_receive(sample * buf){
 	ssize_t count;

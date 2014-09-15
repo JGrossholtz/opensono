@@ -10,23 +10,32 @@
 
 snd_pcm_t *playback_handle;
 sample buf[NBR_SAMPLES_IN_PACKET];
+sample *recvbuf;
 FILE *output;	
 
 int playback_callback (snd_pcm_sframes_t nframes){
 	int err = 0;
-	int i;
+	int i,packets;
 
-	
-	for(i=0;i<nframes;i++){
+	packets = nframes/NBR_SAMPLES_IN_PACKET;
+
+	printf("expect %d frames will give %d packets of %d samples\n",(int)nframes,packets,NBR_SAMPLES_IN_PACKET);
+
+	for(i=0;i < packets ;i++){
 		err = multicast_client_receive( buf );
-		//printf("just received from network = %d frames\n",err);
-
-		if ((err = snd_pcm_writei (playback_handle, buf, NBR_SAMPLES_IN_PACKET)) < 0) {
-			fprintf (stderr, "write failed (%s)\n", snd_strerror (err));
-		}
+		memcpy(recvbuf+i,buf,PAYLOAD_PACKET_SIZE);
 	}
+
+	printf("i=%d\n",i);
+
+	if ((err = snd_pcm_writei (playback_handle,recvbuf ,nframes)) < 0) {
+		fprintf (stderr, "write failed (%s) (expect:%d)\n", snd_strerror (err),(int)nframes);
+	}
+
+
 	return err;
 }
+
 
 void start_playback (){
 	
@@ -37,6 +46,13 @@ void start_playback (){
 		int err;
 		struct pollfd *pfds;
 		unsigned int rate;
+
+		//first allocate some memory : maximum requested size from alsa. this is the buffer we will pass to alsa
+		recvbuf = malloc(sizeof(sample)*(4096));
+		if(recvbuf==NULL){
+			fprintf (stderr, "cannot alloc memory\n");
+		}
+
 		if ((err = snd_pcm_open (&playback_handle, "default", SND_PCM_STREAM_PLAYBACK, 0)) < 0) {
 			fprintf (stderr, "cannot open audio device (%s)\n", 
 				 snd_strerror (err));
@@ -103,7 +119,7 @@ void start_playback (){
 				 snd_strerror (err));
 			exit (1);
 		}
-		if ((err = snd_pcm_sw_params_set_avail_min (playback_handle, sw_params, 4096)) < 0) {
+		if ((err = snd_pcm_sw_params_set_avail_min (playback_handle, sw_params, 8192)) < 0) {
 			fprintf (stderr, "cannot set minimum available count (%s)\n",
 				 snd_strerror (err));
 			exit (1);
@@ -137,7 +153,7 @@ void start_playback (){
 			/* wait till the interface is ready for data, or 1 second
 			   has elapsed.
 			*/
-			usleep(10000);
+			sleep(1);
 			if ((err = snd_pcm_wait (playback_handle, 1000)) < 0) {
 			        fprintf (stderr, "poll failed (%s)\n", strerror (errno));
 			        break;
@@ -156,7 +172,7 @@ void start_playback (){
 				}
 			}
 	
-			max_frames_to_deliver = max_frames_to_deliver > 4096 ? 4096 : max_frames_to_deliver;
+			max_frames_to_deliver = max_frames_to_deliver > 8192 ? 8192 : max_frames_to_deliver;
 	
 			/* deliver the data */
 	
