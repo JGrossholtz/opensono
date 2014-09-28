@@ -75,8 +75,6 @@ void *multicast_data_reception_thread(void * param){
 	sample buf[PACKET_SIZE];
 	ssize_t count;
 
-	
-
 	for(;;){
 		bzero(buf,PACKET_SIZE);
 		if(count = recvfrom(sock_descr,buf,PACKET_SIZE,0,(struct sockaddr*) &clientsSock,&clients_sock_size) < 0){
@@ -84,21 +82,9 @@ void *multicast_data_reception_thread(void * param){
 			close(sock_descr);
 			exit(1);
 		}
-		
-		sample_ring_buffer_write(ring_buffer, buf,  NBR_SAMPLES_IN_PACKET);
-	
+	 	//We add the samples received from network to a ring buffer
+ 		sample_ring_buffer_write(ring_buffer, buf,  NBR_SAMPLES_IN_PACKET);
 	}
-
 }
 
-size_t multicast_client_receive(sample * buf){
-	ssize_t count;
-	if(count = recvfrom(sock_descr,buf,PACKET_SIZE,0,(struct sockaddr*) &clientsSock,&clients_sock_size) < 0){
-		perror("Reading datagram message error");
-		close(sock_descr);
-		exit(1);
-	}
-	
-	return count;
-}
 
