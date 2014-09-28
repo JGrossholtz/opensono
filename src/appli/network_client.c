@@ -13,16 +13,20 @@
 #include "network_client.h"
 
 // variables related with multicast network
-int sock_descr;
-struct sockaddr_in clientsSock;
-socklen_t clients_sock_size;
+static int sock_descr;
+static struct sockaddr_in clientsSock;
+static socklen_t clients_sock_size;
 
 //variables related with receiver thread
 pthread_t multicast_reception_thread;
 pthread_attr_t attr;
 
-int init_multicast_client(){
+static ring_buffer_T *ring_buffer = NULL;
+
+int init_multicast_client(ring_buffer_T *buffer){
 	int retval;
+
+	ring_buffer = buffer;
 	/*
 	 * First init the multicast networking to reiceive samples from the server
 	 */
@@ -72,7 +76,6 @@ void *multicast_data_reception_thread(void * param){
 	ssize_t count;
 
 	
-	ring_buffer_T* buffer =  init_sample_ring_buffer(4096);
 
 	for(;;){
 		bzero(buf,PACKET_SIZE);
@@ -82,8 +85,7 @@ void *multicast_data_reception_thread(void * param){
 			exit(1);
 		}
 		
-		sample_ring_buffer_write(buffer, &buf,  NBR_SAMPLES_IN_PACKET);
-		//TODO : add data to ring buffer here
+		sample_ring_buffer_write(ring_buffer, buf,  NBR_SAMPLES_IN_PACKET);
 	
 	}
 

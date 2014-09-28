@@ -4,8 +4,12 @@
 #include <stdint.h>
 #include "network_client_server.h"
 
-int init_multicast_client();
+
+
+int init_multicast_client(ring_buffer_T *buffer);
 size_t multicast_client_receive(sample * buf);
 void *multicast_data_reception_thread(void *param);
+
+
 
 #endif

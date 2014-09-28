@@ -5,30 +5,24 @@
 #include <alsa/asoundlib.h>
 #include <stdint.h>
 
+
+#include "sample_ring_buffer.h"
+
 #include "network_client.h"
 #include "network_client_server.h"
 
-snd_pcm_t *playback_handle;
-sample buf[NBR_SAMPLES_IN_PACKET];
-sample *recvbuf;
-FILE *output;	
+static snd_pcm_t *playback_handle;
+static ring_buffer_T *ring_buffer = NULL;
 
 int playback_callback (snd_pcm_sframes_t nframes){
 	int err = 0;
-	int i,packets;
 
-	packets = nframes/NBR_SAMPLES_IN_PACKET;
+	sample *tmp_buf = malloc(nframes*sizeof(sample));
 
-	printf("expect %d frames will give %d packets of %d samples\n",(int)nframes,packets,NBR_SAMPLES_IN_PACKET);
+	
+	nframes =  sample_ring_buffer_read(ring_buffer, tmp_buf, nframes);
 
-	for(i=0;i < packets ;i++){
-		err = multicast_client_receive( buf );
-		memcpy(recvbuf+i,buf,PAYLOAD_PACKET_SIZE);
-	}
-
-	printf("i=%d\n",i);
-
-	if ((err = snd_pcm_writei (playback_handle,recvbuf ,nframes)) < 0) {
+	if ((err = snd_pcm_writei (playback_handle,tmp_buf ,nframes)) < 0) {
 		fprintf (stderr, "write failed (%s) (expect:%d)\n", snd_strerror (err),(int)nframes);
 	}
 
@@ -37,7 +31,7 @@ int playback_callback (snd_pcm_sframes_t nframes){
 }
 
 
-void start_playback (){
+void start_playback (ring_buffer_T *buffer){
 	
 		snd_pcm_hw_params_t *hw_params;
 		snd_pcm_sw_params_t *sw_params;
@@ -48,10 +42,7 @@ void start_playback (){
 		unsigned int rate;
 
 		//first allocate some memory : maximum requested size from alsa. this is the buffer we will pass to alsa
-		recvbuf = malloc(sizeof(sample)*(4096));
-		if(recvbuf==NULL){
-			fprintf (stderr, "cannot alloc memory\n");
-		}
+		ring_buffer	= buffer;
 
 		if ((err = snd_pcm_open (&playback_handle, "default", SND_PCM_STREAM_PLAYBACK, 0)) < 0) {
 			fprintf (stderr, "cannot open audio device (%s)\n", 
@@ -153,7 +144,6 @@ void start_playback (){
 			/* wait till the interface is ready for data, or 1 second
 			   has elapsed.
 			*/
-			sleep(1);
 			if ((err = snd_pcm_wait (playback_handle, 1000)) < 0) {
 			        fprintf (stderr, "poll failed (%s)\n", strerror (errno));
 			        break;
