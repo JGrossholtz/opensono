@@ -11,18 +11,21 @@
 #include "network_client.h"
 #include "network_client_server.h"
 
+#define MAX_FRAMES_DELIVERED_TO_ALSA 1024 
+
 static snd_pcm_t *playback_handle;
 static ring_buffer_T *ring_buffer = NULL;
 
-int playback_callback (snd_pcm_sframes_t nframes){
+static sample *data_for_alsa = NULL;
+
+int deliver_samples_to_sound_iface (snd_pcm_sframes_t nframes){
 	int err = 0;
 
-	sample *tmp_buf = malloc(nframes*sizeof(sample));
+	nframes = nframes > MAX_FRAMES_DELIVERED_TO_ALSA ? MAX_FRAMES_DELIVERED_TO_ALSA : nframes;
 
-	
-	nframes =  sample_ring_buffer_read(ring_buffer, tmp_buf, nframes);
+	nframes =  sample_ring_buffer_read(ring_buffer, data_for_alsa, nframes);
 
-	if ((err = snd_pcm_writei (playback_handle,tmp_buf ,nframes)) < 0) {
+	if ((err = snd_pcm_writei (playback_handle,data_for_alsa ,nframes)) < 0) {
 		fprintf (stderr, "write failed (%s) (expect:%d)\n", snd_strerror (err),(int)nframes);
 	}
 
@@ -30,16 +33,16 @@ int playback_callback (snd_pcm_sframes_t nframes){
 	return err;
 }
 
-
 void start_playback (ring_buffer_T *buffer){
-	
 		snd_pcm_hw_params_t *hw_params;
 		snd_pcm_sw_params_t *sw_params;
-		snd_pcm_sframes_t max_frames_to_deliver;
+		snd_pcm_sframes_t space_left_in_hw_buffer;
 		int nfds;
 		int err;
 		struct pollfd *pfds;
 		unsigned int rate;
+
+		data_for_alsa = malloc( MAX_FRAMES_DELIVERED_TO_ALSA * sizeof(sample));
 
 		//first allocate some memory : maximum requested size from alsa. this is the buffer we will pass to alsa
 		ring_buffer	= buffer;
@@ -140,35 +143,31 @@ void start_playback (ring_buffer_T *buffer){
 		printf("client streaming ready... \n");
 
 		while (1) {
-	
-			/* wait till the interface is ready for data, or 1 second
-			   has elapsed.
-			*/
-			if ((err = snd_pcm_wait (playback_handle, 1000)) < 0) {
+			//We wait until the audio interface is ready to receive more data. This may make us wait a bit 
+			//if the alsa driver fifo(ring buffer) is full. Normally we are never in this case.
+			//In worst case we wait 300ms but it should not happen, the appli is working even with 1ms timeout.
+			if ((err = snd_pcm_wait (playback_handle, 300)) < 0) {
 			        fprintf (stderr, "poll failed (%s)\n", strerror (errno));
 			        break;
 			}	           
 	
-			/* find out how much space is available for playback data */
-	
-			if ((max_frames_to_deliver = snd_pcm_avail_update (playback_handle)) < 0) {
-				if (max_frames_to_deliver == -EPIPE) {
+			// Here we check if there is some space into the driver fifo.
+			// Should always be the case. The fifo is several seconds long.
+			if ((space_left_in_hw_buffer = snd_pcm_avail_update (playback_handle)) < 0) {
+				if (space_left_in_hw_buffer == -EPIPE) {
 					fprintf (stderr, "an xrun occured\n");
 					break;
 				} else {
 					fprintf (stderr, "unknown ALSA avail update return value (%d)\n", 
-						 (int)max_frames_to_deliver);
+						 (int)space_left_in_hw_buffer);
 					break;
 				}
 			}
 	
-			max_frames_to_deliver = max_frames_to_deliver > 8192 ? 8192 : max_frames_to_deliver;
 	
-			/* deliver the data */
-	
-			if (playback_callback (max_frames_to_deliver) < 0 ) {
+			/*Request samples to deliver to the sound interface */
+			if (deliver_samples_to_sound_iface (space_left_in_hw_buffer) < 0 ) {
 			        fprintf (stderr, "playback callback failed\n");
-				//break;
 			}
 		}
 	

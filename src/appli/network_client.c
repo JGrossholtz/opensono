@@ -48,7 +48,6 @@ int init_multicast_client(ring_buffer_T *buffer){
 		exit(1);
 	}
 
-
 	group.imr_multiaddr.s_addr = inet_addr(MULTICAST_GROUP);         
 	group.imr_interface.s_addr = htonl(INADDR_ANY);         
 	if (setsockopt(sock_descr, IPPROTO_IP, IP_ADD_MEMBERSHIP,
@@ -59,12 +58,11 @@ int init_multicast_client(ring_buffer_T *buffer){
 
 	printf("client network ready\n");
 
-
 	/*
 	 * Start receiver thread
 	 */
 	pthread_attr_init(&attr);
-	pthread_attr_setdetachstate(&attr,PTHREAD_CREATE_DETACHED); //The reception thread will handle it's stop by itself
+	pthread_attr_setdetachstate(&attr,PTHREAD_CREATE_DETACHED); //The reception thread will handle it's stop by itself (TODO)
 
 	retval =  pthread_create(&multicast_reception_thread, &attr, multicast_data_reception_thread, NULL); 
 
