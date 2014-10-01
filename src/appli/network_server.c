@@ -39,7 +39,7 @@ int multicast_server_send(sample * buf){
 	if(sended < 0){
 		printf("We where not able to send data (TODO try to fix network in this case) \n");
 	}
-	
+
 	return sended;
 }
 

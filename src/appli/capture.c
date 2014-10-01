@@ -15,6 +15,8 @@ int start_acquisition()
 		snd_pcm_hw_params_t *hw_params;
 		snd_pcm_sframes_t frames_to_deliver;
 
+		printf("nbr sample in packet = %d (%d frames) nbr channels = %d\n",NBR_SAMPLES_IN_PACKET,NBR_FRAMES_IN_PACKET,NBR_CHANNELS);
+
 	/***************************************************************************************************
 
 							  PLAYER PCM device : Hardware configuration  TODO : do a function of this : it's the same code as the player
@@ -75,7 +77,7 @@ int start_acquisition()
 	
 		
 		//Set the number of channels : we want stereo so we set 2 channels
-		if ((err = snd_pcm_hw_params_set_channels (capture_handle, hw_params, 2)) < 0) {
+		if ((err = snd_pcm_hw_params_set_channels (capture_handle, hw_params, NBR_CHANNELS)) < 0) {
 			fprintf (stderr, "cannot set channel count (%s)\n",
 				 snd_strerror (err));
 			exit (1);
@@ -101,7 +103,7 @@ int start_acquisition()
 		
 		for (;;) {
 			//Read frames from the PCM interface
-			if ((err = snd_pcm_readi (capture_handle, buf, NBR_SAMPLES_IN_PACKET)) != NBR_SAMPLES_IN_PACKET) {
+			if ((err = snd_pcm_readi (capture_handle, buf, NBR_FRAMES_IN_PACKET)) != NBR_FRAMES_IN_PACKET) {
 				fprintf (stderr, "read from audio interface failed (%s)\n",
 				snd_strerror (err));
 				exit (1);

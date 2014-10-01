@@ -20,11 +20,14 @@ static sample *data_for_alsa = NULL;
 
 int deliver_samples_to_sound_iface (snd_pcm_sframes_t nframes){
 	int err = 0;
+	uint32_t samples_request;
 
 	nframes = nframes > MAX_FRAMES_DELIVERED_TO_ALSA ? MAX_FRAMES_DELIVERED_TO_ALSA : nframes;
-	nframes =  sample_ring_buffer_read(ring_buffer, data_for_alsa, nframes);
 
-	if ((err = snd_pcm_writei (playback_handle,data_for_alsa ,nframes)) < 0) {
+	samples_request = NBR_CHANNELS * nframes;
+	nframes =  sample_ring_buffer_read(ring_buffer, data_for_alsa, samples_request/2);
+
+	if ((err = snd_pcm_writei (playback_handle,data_for_alsa ,nframes/2)) < 0) {
 		fprintf (stderr, "write failed (%s) (expect:%d)\n", snd_strerror (err),(int)nframes);
 	}
 
@@ -40,7 +43,7 @@ void start_playback (ring_buffer_T *buffer){
 	struct pollfd *pfds;
 	unsigned int rate;
 
-	data_for_alsa = malloc( MAX_FRAMES_DELIVERED_TO_ALSA * sizeof(sample));
+	data_for_alsa = malloc( MAX_FRAMES_DELIVERED_TO_ALSA * sizeof(sample) * 2);
 
 	//first allocate some memory : maximum requested size from alsa. this is the buffer we will pass to alsa
 	ring_buffer	= buffer;
@@ -94,7 +97,7 @@ void start_playback (ring_buffer_T *buffer){
 	}
 
 
-	œ//Here we set the sample rate at 44100Hz. The problem here is it's only a request : the real sample rate can be slightly different.
+	//Here we set the sample rate at 44100Hz. The problem here is it's only a request : the real sample rate can be slightly different.
 	// This is the purpose of the last parameter of this funcition : it can give you the offset. TODO : take care of this offset value.
 	rate = 44100;	
 	if ((err = snd_pcm_hw_params_set_rate_near (playback_handle, hw_params, &rate, 0)) < 0) {
@@ -104,7 +107,7 @@ void start_playback (ring_buffer_T *buffer){
 	}
 
 	//Set the number of channels : we want stereo so we set 2 channels
-	if ((err = snd_pcm_hw_params_set_channels (playback_handle, hw_params, 2)) < 0) {
+	if ((err = snd_pcm_hw_params_set_channels (playback_handle, hw_params, NBR_CHANNELS  )) < 0) {
 		fprintf (stderr, "cannot set channel count (%s)\n",
 				snd_strerror (err));
 		exit (1);
@@ -199,7 +202,7 @@ void start_playback (ring_buffer_T *buffer){
 
 
 		/*Request samples to deliver to the sound interface, give it the maximum amount of samples it can write (TODO : multiply the number of frames by the number of channels)*/
-		if (deliver_samples_to_sound_iface (space_left_in_hw_buffer) < 0 ) {
+		if (deliver_samples_to_sound_iface (space_left_in_hw_buffer ) < 0 ) {
 			fprintf (stderr, "playback callback failed\n");
 		}
 	}
