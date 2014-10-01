@@ -25,9 +25,10 @@ int deliver_samples_to_sound_iface (snd_pcm_sframes_t nframes){
 	nframes = nframes > MAX_FRAMES_DELIVERED_TO_ALSA ? MAX_FRAMES_DELIVERED_TO_ALSA : nframes;
 
 	samples_request = NBR_CHANNELS * nframes;
-	nframes =  sample_ring_buffer_read(ring_buffer, data_for_alsa, samples_request/2);
+	samples_request =  sample_ring_buffer_read(ring_buffer, data_for_alsa, samples_request);
+	nframes = samples_request/NBR_CHANNELS;
 
-	if ((err = snd_pcm_writei (playback_handle,data_for_alsa ,nframes/2)) < 0) {
+	if ((err = snd_pcm_writei (playback_handle,data_for_alsa ,nframes)) < 0) {
 		fprintf (stderr, "write failed (%s) (expect:%d)\n", snd_strerror (err),(int)nframes);
 	}
 
@@ -43,7 +44,7 @@ void start_playback (ring_buffer_T *buffer){
 	struct pollfd *pfds;
 	unsigned int rate;
 
-	data_for_alsa = malloc( MAX_FRAMES_DELIVERED_TO_ALSA * sizeof(sample) * 2);
+	data_for_alsa = malloc( MAX_FRAMES_DELIVERED_TO_ALSA * sizeof(sample) * NBR_CHANNELS);
 
 	//first allocate some memory : maximum requested size from alsa. this is the buffer we will pass to alsa
 	ring_buffer	= buffer;
