@@ -11,7 +11,7 @@
 #include "network_client.h"
 #include "network_client_server.h"
 
-#define MAX_FRAMES_DELIVERED_TO_ALSA 1024 
+#define MAX_FRAMES_DELIVERED_TO_ALSA 2048 
 
 static snd_pcm_t *playback_handle;
 static ring_buffer_T *ring_buffer = NULL;
@@ -183,7 +183,17 @@ void start_playback (ring_buffer_T *buffer){
 		//if the alsa driver fifo(ring buffer) is full. Normally we are never in this case.
 		//In worst case we wait 300ms but it should not happen, the appli is working even with 1ms timeout.
 		if ((err = snd_pcm_wait (playback_handle, 300)) < 0) {
-			fprintf (stderr, "poll failed (%s)\n", strerror (errno));
+			switch(err){
+				case -EPIPE:
+					fprintf (stderr, "error -EPIPE : xrun (%s)\n", strerror (errno));
+				break;
+				case -ESTRPIPE:
+					fprintf (stderr, "-ESTRPIPE :suspended  (%s)\n", strerror (errno));
+				break;
+				default:
+					fprintf (stderr, "poll failed (%s)\n", strerror (errno));
+				break;	
+			}
 			break;
 		}	           
 
