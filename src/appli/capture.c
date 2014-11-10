@@ -58,7 +58,7 @@ int start_acquisition()
 
 		//Set the sample format data to SND_PCM_FORMAT_S32_LE : Signed 32 bit Little Endian.
 		//TODO : worth the try with other options such as SND_PCM_FORMAT_FLOAT64_LE for better quality
-		if ((err = snd_pcm_hw_params_set_format (capture_handle, hw_params, SND_PCM_FORMAT_S32_LE)) < 0) {
+		if ((err = snd_pcm_hw_params_set_format (capture_handle, hw_params, ALSA_SAMPLE_PCM_FORMAT  )) < 0) {
 			fprintf (stderr, "cannot set sample format (%s)\n",
 					snd_strerror (err));
 			exit (1);
@@ -66,7 +66,7 @@ int start_acquisition()
 	
 	
 	
-		unsigned int rate = 44100;	
+		unsigned int rate = ALSA_SAMPLE_RATE;	
 		//Here we set the sample rate at 44100Hz. The problem here is it's only a request : the real sample rate can be slightly different.
 		// This is the purpose of the last parameter of this funcition : it can give you the offset. TODO : take care of this offset value.
 		if ((err = snd_pcm_hw_params_set_rate_near (capture_handle, hw_params, &rate, 0)) < 0) {
