@@ -32,13 +32,16 @@ int init_multicast_server(){
 	return 1;
 }
 
+static long int count = 0;
+
 int multicast_server_send(sample * buf){
 	ssize_t sended;
-	
 	sended = sendto(socket_descriptor, buf, PACKET_SIZE,  0, (struct sockaddr*)&clientsSock, sizeof(clientsSock));
 	if(sended < 0){
 		printf("We where not able to send data (TODO try to fix network in this case) \n");
 	}
+	count++;
+	printf("packet count = %ld\r",count);
 
 	return sended;
 }

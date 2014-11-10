@@ -79,7 +79,7 @@ void start_playback (ring_buffer_T *buffer){
 	}
 
 	//This change the sample input/output format.It just works with interleaved data but TODO it may worth the try with 
-	//other configurations. in Interleaved mode the we get one sample from teh first channel and then one
+	//other configurations. in Interleaved mode the we get one sample from the first channel and then one
 	// sample for the second channel etc... In non interleaved mode we receive all samples from one chanel for a period
 	// and then all samples from the second chanel for the same period.
 	// (Remark : a period is the number of frames in between each hardware interrupt).

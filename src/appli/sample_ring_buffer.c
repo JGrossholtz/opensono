@@ -41,7 +41,7 @@ uint32_t sample_ring_buffer_write(ring_buffer_T *rb, sample* data, uint32_t coun
 
 
 uint32_t sample_ring_buffer_read(ring_buffer_T *rb, sample* data, uint32_t requested){//extremely basic : really risk to overlap writer pointer
-	printf("reading %d sample starting at %p\n buffer [%p-----%p]\n",requested,rb->read_ptr, rb->buffer,rb->buffer+rb->size);
+//	printf("reading %d sample starting at %p\n buffer [%p-----%p]\n",requested,rb->read_ptr, rb->buffer,rb->buffer+rb->size);
 
 	//first we make sure there is no overrun :
 	uint32_t max_samples;
@@ -51,10 +51,10 @@ uint32_t sample_ring_buffer_read(ring_buffer_T *rb, sample* data, uint32_t reque
 		return 0;
 	}else if(rb->read_ptr < rb->write_ptr){ //test if the read ptr is behind the write ptr in the ring buffer : |   R---------------W         |
 		max_samples = rb->write_ptr - rb->read_ptr;
-		printf("A : %p %p (%d)",rb->write_ptr,rb->read_ptr,max_samples);
+//		printf("A : %p %p (%d)",rb->write_ptr,rb->read_ptr,max_samples);
 	}else{ //Last possible case :              |-----W       R--------------|
 		max_samples = rb->size - (uint32_t)(rb->read_ptr - rb->write_ptr) ;
-		printf("B : %p %p (%d)",rb->write_ptr,rb->read_ptr,max_samples);
+		//printf("B : %p %p (%d)",rb->write_ptr,rb->read_ptr,max_samples);
 	}
 
 
@@ -62,7 +62,7 @@ uint32_t sample_ring_buffer_read(ring_buffer_T *rb, sample* data, uint32_t reque
 		requested = max_samples;
 
 
-	printf("reading %d samples, samples left : \n",requested,max_samples-requested);
+	//printf("reading %d samples, samples left : \n",requested,max_samples-requested);
 	if( rb->read_ptr + requested <= rb->buffer + rb->size ){
 		memcpy(data,rb->read_ptr,requested*sizeof(sample));
 		rb->read_ptr += requested; 

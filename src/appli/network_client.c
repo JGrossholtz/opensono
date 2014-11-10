@@ -44,8 +44,7 @@ int init_multicast_client(ring_buffer_T *buffer){
 	clientsSock.sin_port = htons(OPENSONO_DATA_PORT);
 	clients_sock_size = sizeof(clientsSock);
 
-	if (setsockopt(sock_descr, SOL_SOCKET, SO_REUSEADDR,
-				&group, sizeof(group)) < 0) {
+	if (setsockopt(sock_descr, SOL_SOCKET, SO_REUSEADDR, &group, sizeof(group)) < 0) {
 		perror("setsockopt mreq");
 		exit(1);
 	}         
@@ -75,6 +74,7 @@ int init_multicast_client(ring_buffer_T *buffer){
 
 }
 
+static long int count = 0;
 
 void *multicast_data_reception_thread(void * param){
 	sample buf[PACKET_SIZE];
@@ -87,6 +87,8 @@ void *multicast_data_reception_thread(void * param){
 			close(sock_descr);
 			exit(1);
 		}
+		count++;
+		printf("packet count = %ld\r",count);
 	 	//We add the samples received from network to a ring buffer
  		sample_ring_buffer_write(ring_buffer, buf,  NBR_SAMPLES_IN_PACKET);
 	}
