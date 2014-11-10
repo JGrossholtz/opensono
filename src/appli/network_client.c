@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
+#include <errno.h>
 
 #include "sample_ring_buffer.h"
 
@@ -43,8 +44,14 @@ int init_multicast_client(ring_buffer_T *buffer){
 	clientsSock.sin_port = htons(OPENSONO_DATA_PORT);
 	clients_sock_size = sizeof(clientsSock);
 
+	if (setsockopt(sock_descr, SOL_SOCKET, SO_REUSEADDR,
+				&group, sizeof(group)) < 0) {
+		perror("setsockopt mreq");
+		exit(1);
+	}         
+
 	if(bind(sock_descr,(struct sockaddr*)  &clientsSock,clients_sock_size) < 0){
-		printf("error while binding...\n");
+		printf("error while binding : %d (%s)\n",errno,strerror(errno));
 		exit(1);
 	}
 
