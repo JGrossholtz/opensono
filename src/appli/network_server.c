@@ -5,11 +5,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "network_client_server.h"
 #include "common.h"
 
-struct sockaddr_in clientsSock;
+struct sockaddr_in adresse;
 int socket_descriptor;
 
 
@@ -21,12 +22,12 @@ int init_multicast_server(){
 		perror("socket");
 		exit(1);
 	}
-	bzero((char *)&clientsSock, sizeof(clientsSock));
-	clientsSock.sin_family = AF_INET;
-	clientsSock.sin_addr.s_addr = htonl(INADDR_ANY);
-	clientsSock.sin_port = htons(OPENSONO_DATA_PORT);
+	bzero((char *)&adresse, sizeof(adresse));
+	adresse.sin_family = AF_INET;
+	adresse.sin_addr.s_addr = htonl(INADDR_ANY);
+	adresse.sin_port = htons(OPENSONO_DATA_PORT);
 
- 	clientsSock.sin_addr.s_addr = inet_addr(MULTICAST_GROUP);
+ 	adresse.sin_addr.s_addr = inet_addr(MULTICAST_GROUP);
 
 	printf("server network initialized...\n");
 	return 1;
@@ -36,7 +37,7 @@ static long int count = 0;
 
 int multicast_server_send(sample * buf){
 	ssize_t sended;
-	sended = sendto(socket_descriptor, buf, PACKET_SIZE,  0, (struct sockaddr*)&clientsSock, sizeof(clientsSock));
+	sended = sendto(socket_descriptor, buf, PACKET_SIZE,  0, (struct sockaddr*)&adresse, sizeof(adresse));
 	if(sended < 0){
 		printf("We where not able to send data (TODO try to fix network in this case) \n");
 	}
@@ -46,3 +47,40 @@ int multicast_server_send(sample * buf){
 	return sended;
 }
 
+
+
+int socket_to_client;
+
+int init_tcp_socket(){
+	socket_descriptor = socket(AF_INET,SOCK_STREAM,0);
+	if(socket_descriptor < 0){
+		perror("cannot create socket");
+		return -1;
+	}
+
+	memset(&adresse,0, sizeof(struct sockaddr_in));
+	adresse.sin_family = AF_INET;
+	adresse.sin_addr.s_addr = htonl(INADDR_ANY);
+	adresse.sin_port = htons(OPENSONO_DATA_PORT);
+
+	if( bind( socket_descriptor, (struct sockaddr *) &adresse, sizeof(struct sockaddr_in )) < 0 ){
+		close(socket_descriptor);
+		perror("bind");
+		exit(1);
+	}
+
+	printf("Our IP is : %s\n", inet_ntoa(adresse.sin_addr));
+
+
+	listen(socket_descriptor,5);
+
+	socket_to_client = accept(socket_descriptor,NULL,NULL);
+
+	return 1;
+
+}
+
+
+int tcp_server_send(sample * buf){
+	return write(socket_to_client,buf,PACKET_SIZE);
+}

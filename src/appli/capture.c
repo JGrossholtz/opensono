@@ -108,7 +108,8 @@ int start_acquisition()
 				snd_strerror (err));
 				exit (1);
 			}
-			multicast_server_send(buf);
+			tcp_server_send(buf);
+//			multicast_server_send(buf);
 		}
 	
 		snd_pcm_close (capture_handle);
