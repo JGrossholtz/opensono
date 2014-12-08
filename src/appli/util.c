@@ -12,10 +12,14 @@
 /* private data*/
 #define SIOCGIFADDR_DEFAULT_RETURN "0.0.0.0"
 
+
+
+/*
+ * Utility function : get the IP adress from the network interface name.
+ */
 int get_wireless_iface_ipaddr(char * ipstr , int sockfd){
 	 struct ifreq ifr;
 	 strncpy(ifr.ifr_name, "wlan0", IFNAMSIZ-1); 
-
 
 	 ioctl(sockfd, SIOCGIFADDR, &ifr);
 

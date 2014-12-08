@@ -3,5 +3,4 @@
 
 #define IPADDR_STR_LEN	16 //size for IP strings
 
-
 #endif

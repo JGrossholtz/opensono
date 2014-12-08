@@ -7,16 +7,17 @@
 
 
 #include "sample_ring_buffer.h"
+#include "network_client_server.h"
+
 
 #include "network_client.h"
-#include "network_client_server.h"
 
 #define MAX_FRAMES_DELIVERED_TO_ALSA 2048 
 
 static snd_pcm_t *playback_handle;
 static ring_buffer_T *ring_buffer = NULL;
-
 static sample *data_for_alsa = NULL;
+
 
 int deliver_samples_to_sound_iface (snd_pcm_sframes_t nframes){
 	int err = 0;

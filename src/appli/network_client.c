@@ -17,6 +17,7 @@
 static int sock_descr;
 static struct sockaddr_in clientsSock;
 static socklen_t clients_sock_size;
+static long int count = 0; //for debugging only
 
 //variables related with receiver thread
 pthread_t multicast_reception_thread;
@@ -74,7 +75,6 @@ int init_multicast_client(ring_buffer_T *buffer){
 
 }
 
-static long int count = 0;
 
 void *multicast_data_reception_thread(void * param){
 	sample buf[PACKET_SIZE];
@@ -83,17 +83,17 @@ void *multicast_data_reception_thread(void * param){
 	printf("\n\n");
 	for(;;){
 		bzero(buf,PACKET_SIZE);
-/*		if(count = recvfrom(sock_descr,buf,PACKET_SIZE,0,(struct sockaddr*) &clientsSock,&clients_sock_size) < 0){
-			perror("Reading datagram message error");
-			close(sock_descr);
-			exit(1);
-		}*/
+		/*		if(count = recvfrom(sock_descr,buf,PACKET_SIZE,0,(struct sockaddr*) &clientsSock,&clients_sock_size) < 0){
+				perror("Reading datagram message error");
+				close(sock_descr);
+				exit(1);
+				}*/
 
 		read(sock_descr,buf,PACKET_SIZE);
 		count++;
 		printf("packet count = %ld\r",count);
-	 	//We add the samples received from network to a ring buffer
- 		sample_ring_buffer_write(ring_buffer, buf,  NBR_SAMPLES_IN_PACKET);
+		//We add the samples received from network to a ring buffer
+		sample_ring_buffer_write(ring_buffer, buf,  NBR_SAMPLES_IN_PACKET);
 	}
 }
 
@@ -110,7 +110,7 @@ int init_tcp_client(ring_buffer_T *buffer){
 
 	memset(&clientsSock,0, sizeof(struct sockaddr_in));
 	clientsSock.sin_family = AF_INET;
-	clientsSock.sin_addr.s_addr = inet_addr("192.168.1.21");
+	clientsSock.sin_addr.s_addr = inet_addr("192.168.1.22"); //The adress is fiex, for now I only must see if it can work with tcp and my low quality wifi dongle.
 	clientsSock.sin_port = htons(OPENSONO_DATA_PORT);
 
 	if(connect(sock_descr,(struct sockaddr_in*) &clientsSock,sizeof(struct sockaddr_in)) < 0 ){

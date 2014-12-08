@@ -13,6 +13,9 @@ OBJECTS=	main.o 					\
 			sample_ring_buffer.o	\
 			player.o
 
+#During development it's usefull to build for both arm and x86 architectures.
+#This makefile is calling itself with the right target and the right compiler.
+
 all:
 	$(MAKE) x86 CC=gcc
 	@rm -f *.o

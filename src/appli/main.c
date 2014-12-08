@@ -7,13 +7,20 @@
 #include "network_client.h"
 
 
-#define RING_BUFFER_SIZE NBR_SAMPLES_IN_PACKET*5000
+#define RING_BUFFER_SIZE NBR_SAMPLES_IN_PACKET*50000
 
 #define SERVER "--server"
 
+
+
+/*
+ * The same binary is used for both client and server.
+ * For server the --server option must be used. No option is needed for clients
+ *
+ */
 int main( int argc, char *argv[] ){
 	
-	if(argv[1] != NULL && strncmp(argv[1],SERVER,strlen(SERVER)) == 0){
+	if(argv[1] != NULL && strncmp(argv[1],SERVER,strlen(SERVER)) == 0){ //Server mode
 		printf("Starting openson as Server (recorder) \n");
 		init_tcp_socket();
 		/*init_multicast_server();*/
@@ -24,7 +31,7 @@ int main( int argc, char *argv[] ){
 		init_tcp_client(buffer);
 //		init_multicast_client(buffer);
 		printf("client network started\n");
-		sleep(1);//wait until we receive some data
+		sleep(10);//wait until we receive some data
  		start_playback (buffer);
 	}
 

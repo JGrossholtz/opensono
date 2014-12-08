@@ -11,12 +11,11 @@
 #include "common.h"
 
 struct sockaddr_in adresse;
-int socket_descriptor;
-
-
+static int socket_descriptor;
+static long int count = 0;
+int socket_to_client;
 
 int init_multicast_server(){
-
 	socket_descriptor = socket(AF_INET, SOCK_DGRAM, 0);
 	if (socket_descriptor < 0) {
 		perror("socket");
@@ -33,7 +32,6 @@ int init_multicast_server(){
 	return 1;
 }
 
-static long int count = 0;
 
 int multicast_server_send(sample * buf){
 	ssize_t sended;
@@ -49,7 +47,6 @@ int multicast_server_send(sample * buf){
 
 
 
-int socket_to_client;
 
 int init_tcp_socket(){
 	socket_descriptor = socket(AF_INET,SOCK_STREAM,0);
@@ -70,8 +67,6 @@ int init_tcp_socket(){
 	}
 
 	printf("Our IP is : %s\n", inet_ntoa(adresse.sin_addr));
-
-
 	listen(socket_descriptor,5);
 
 	socket_to_client = accept(socket_descriptor,NULL,NULL);

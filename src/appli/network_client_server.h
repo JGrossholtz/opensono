@@ -1,3 +1,10 @@
+/*
+ * This file contains the shared configurations between client and server.
+ * Later some of those configs will be replaced by a protocol for dynamic configuration
+ *
+ */
+
+
 #ifndef NETWORK_CLIENT_SERVER____H
 #define NETWORK_CLIENT_SERVER____H
 
