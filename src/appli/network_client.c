@@ -80,7 +80,6 @@ void *multicast_data_reception_thread(void * param){
 	sample buf[PACKET_SIZE];
 	ssize_t count;
 
-	printf("\n\n");
 	for(;;){
 		bzero(buf,PACKET_SIZE);
 		/*		if(count = recvfrom(sock_descr,buf,PACKET_SIZE,0,(struct sockaddr*) &clientsSock,&clients_sock_size) < 0){
@@ -91,7 +90,7 @@ void *multicast_data_reception_thread(void * param){
 
 		read(sock_descr,buf,PACKET_SIZE);
 		count++;
-		printf("packet count = %ld\r",count);
+		//printf("packet count = %ld\r\r",count);
 		//We add the samples received from network to a ring buffer
 		sample_ring_buffer_write(ring_buffer, buf,  NBR_SAMPLES_IN_PACKET);
 	}
@@ -110,7 +109,7 @@ int init_tcp_client(ring_buffer_T *buffer){
 
 	memset(&clientsSock,0, sizeof(struct sockaddr_in));
 	clientsSock.sin_family = AF_INET;
-	clientsSock.sin_addr.s_addr = inet_addr("192.168.1.22"); //The adress is fiex, for now I only must see if it can work with tcp and my low quality wifi dongle.
+	clientsSock.sin_addr.s_addr = inet_addr("192.168.1.17"); //The adress is fiex, for now I only must see if it can work with tcp and my low quality wifi dongle.
 	clientsSock.sin_port = htons(OPENSONO_DATA_PORT);
 
 	if(connect(sock_descr,(struct sockaddr_in*) &clientsSock,sizeof(struct sockaddr_in)) < 0 ){

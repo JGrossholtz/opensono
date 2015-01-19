@@ -12,7 +12,7 @@
 
 #include "network_client.h"
 
-#define MAX_FRAMES_DELIVERED_TO_ALSA 2048 
+#define MAX_FRAMES_DELIVERED_TO_ALSA 4096 
 
 static snd_pcm_t *playback_handle;
 static ring_buffer_T *ring_buffer = NULL;
@@ -22,7 +22,7 @@ static sample *data_for_alsa = NULL;
 int deliver_samples_to_sound_iface (snd_pcm_sframes_t nframes){
 	int err = 0;
 	uint32_t samples_request;
-
+	printf("freespace=%d samples availables=%d \n",nframes,sample_ring_buffer_get_samples_left(ring_buffer));
 	nframes = nframes > MAX_FRAMES_DELIVERED_TO_ALSA ? MAX_FRAMES_DELIVERED_TO_ALSA : nframes;
 
 	samples_request = NBR_CHANNELS * nframes;
@@ -107,6 +107,7 @@ void start_playback (ring_buffer_T *buffer){
 				snd_strerror (err));
 		exit (1);
 	}
+	printf("REAL rate = %d\n",rate);
 
 	//Set the number of channels : we want stereo so we set 2 channels
 	if ((err = snd_pcm_hw_params_set_channels (playback_handle, hw_params, NBR_CHANNELS  )) < 0) {
@@ -148,7 +149,7 @@ void start_playback (ring_buffer_T *buffer){
 
 	//Here we configure what is the minimal available frames count in the PCM fifo to wake up and write data.
 	//As we will keep the data into this buffer vry low we will never reach this minimal value and we will be active permanently.
-	if ((err = snd_pcm_sw_params_set_avail_min (playback_handle, sw_params, 8192)) < 0) {
+	if ((err = snd_pcm_sw_params_set_avail_min (playback_handle, sw_params, 4096)) < 0) {
 		fprintf (stderr, "cannot set minimum available count (%s)\n",
 				snd_strerror (err));
 		exit (1);
@@ -183,7 +184,7 @@ void start_playback (ring_buffer_T *buffer){
 		//We wait until the audio interface is ready to receive more data. This may make us wait a bit 
 		//if the alsa driver fifo(ring buffer) is full. Normally we are never in this case.
 		//In worst case we wait 300ms but it should not happen, the appli is working even with 1ms timeout.
-		if ((err = snd_pcm_wait (playback_handle, 300)) < 0) {
+		if ((err = snd_pcm_wait (playback_handle, 100)) < 0) {
 			switch(err){
 				case -EPIPE:
 					fprintf (stderr, "error -EPIPE : xrun (%s)\n", strerror (errno));

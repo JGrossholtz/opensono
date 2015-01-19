@@ -77,5 +77,8 @@ int init_tcp_socket(){
 
 
 int tcp_server_send(sample * buf){
-	return write(socket_to_client,buf,PACKET_SIZE);
+	ssize_t ret;
+	ret = write(socket_to_client,buf,PACKET_SIZE);
+	if(ret!=PACKET_SIZE)
+		printf("WE did not write a full packet \n"); //TODO handle this case smoothy
 }

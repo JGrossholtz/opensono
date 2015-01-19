@@ -67,7 +67,8 @@ uint32_t sample_ring_buffer_read(ring_buffer_T *rb, sample* data, uint32_t reque
 	}else{ 									//Last possible case :              |-----W       R--------------|	->  data is splited in 2 parts : from the curent read pointer to the "end" of the fifo and from the start to read size.
 		max_samples = rb->size - (uint32_t)(rb->read_ptr - rb->write_ptr) ;
 	}
-
+	
+	//printf("samples left=%d\r",max_samples);
 	//We don't have enough samples available
 	if(max_samples < requested)
 		requested = max_samples;
@@ -79,7 +80,6 @@ uint32_t sample_ring_buffer_read(ring_buffer_T *rb, sample* data, uint32_t reque
 		rb->read_ptr += requested; 
 	}
 	else{													//We have to jump back to start, so we need to read in 2 parts.
-		printf("\n\n Jumping back to start !!\n\n");
 		uint32_t readlength = 	rb->buffer + rb->size - rb->read_ptr;
 
 		memcpy(data,rb->read_ptr,readlength*sizeof(sample));
@@ -90,6 +90,24 @@ uint32_t sample_ring_buffer_read(ring_buffer_T *rb, sample* data, uint32_t reque
 	return requested;
 }
 
+uint32_t  sample_ring_buffer_get_samples_left(ring_buffer_T *rb){
+	uint32_t max_samples;
+
+	/*
+	 * First part we calculate how many samples we can read. max_samples is the maximum number
+	 * of samples available.
+	 */
+	if(rb->read_ptr == rb->write_ptr){
+		//In this case we don't have data at all we must wait until we receive some. No need to consume too much cpu time by re-entering again here
+		usleep(20000); //20 mseconds
+		return 0;
+	}else if(rb->read_ptr < rb->write_ptr){ //test if the read ptr is behind the write ptr in the ring buffer : |   R---------------W         |
+		max_samples = rb->write_ptr - rb->read_ptr;
+	}else{ 									//Last possible case :              |-----W       R--------------|	->  data is splited in 2 parts : from the curent read pointer to the "end" of the fifo and from the start to read size.
+		max_samples = rb->size - (uint32_t)(rb->read_ptr - rb->write_ptr) ;
+	}
+	return max_samples;
+}
 
 /*
  * Free everything we have allocated.

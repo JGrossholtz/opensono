@@ -7,7 +7,7 @@
 #include "network_client.h"
 
 
-#define RING_BUFFER_SIZE NBR_SAMPLES_IN_PACKET*50000
+#define RING_BUFFER_SIZE NBR_SAMPLES_IN_PACKET*5000
 
 #define SERVER "--server"
 
@@ -31,7 +31,7 @@ int main( int argc, char *argv[] ){
 		init_tcp_client(buffer);
 //		init_multicast_client(buffer);
 		printf("client network started\n");
-		sleep(10);//wait until we receive some data
+		sleep(1);//wait until we receive some data
  		start_playback (buffer);
 	}
 
