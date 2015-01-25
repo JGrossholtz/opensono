@@ -15,13 +15,20 @@
 
 static snd_pcm_t *playback_handle;
 static ring_buffer_T *ring_buffer = NULL;
-
 static sample *data_for_alsa = NULL;
 
+/*
+ * This function take data from the ring buffer (filled by the network client) and 
+ * give it to ALSA so it is played. 
+ * Remark : In this function the argument nframes is the number of frames Alsa agrees to receive.
+ * A frame is composed by one or more samples : In mono the frame is just one sample, in stereo
+ * it is 2 samples.
+ */
 int deliver_samples_to_sound_iface (snd_pcm_sframes_t nframes){
 	int err = 0;
 	uint32_t samples_request;
 
+	//Set a maximum to avoid underflow when application has just been started and Alsa ask for a lot of data.
 	nframes = nframes > MAX_FRAMES_DELIVERED_TO_ALSA ? MAX_FRAMES_DELIVERED_TO_ALSA : nframes;
 
 	samples_request = NBR_CHANNELS * nframes;
@@ -35,6 +42,10 @@ int deliver_samples_to_sound_iface (snd_pcm_sframes_t nframes){
 	return err;
 }
 
+
+/*
+ * This function initialize the ALSA player and contains the main playback loop.
+ */
 void start_playback (ring_buffer_T *buffer){
 	snd_pcm_hw_params_t *hw_params; //Alsa container for hardware parameters
 	snd_pcm_sw_params_t *sw_params;
@@ -210,7 +221,6 @@ void start_playback (ring_buffer_T *buffer){
 				break;
 			}
 		}
-
 
 		/*Request samples to deliver to the sound interface, give it the maximum amount of samples it can write (TODO : multiply the number of frames by the number of channels)*/
 		if (deliver_samples_to_sound_iface (space_left_in_hw_buffer ) < 0 ) {

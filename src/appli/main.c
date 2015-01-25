@@ -12,7 +12,8 @@
 #define SERVER "--server"
 
 int main( int argc, char *argv[] ){
-	
+
+	//We use the same binary for both client and server
 	if(argv[1] != NULL && strncmp(argv[1],SERVER,strlen(SERVER)) == 0){
 		printf("Starting openson as Server (recorder) \n");
 		init_multicast_server();
@@ -22,7 +23,7 @@ int main( int argc, char *argv[] ){
 		printf("Starting openson as client (player)\n");
 		init_multicast_client(buffer);
 		printf("client network started\n");
-		sleep(1);//wait until we receive some data
+		sleep(1);//wait until we receive some data -> this as latency... TODO:must be removed
  		start_playback (buffer);
 	}
 

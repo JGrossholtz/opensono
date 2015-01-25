@@ -3,12 +3,16 @@
 #include <stdint.h>
 #include "network_client_server.h"
 
+
+/*
+ * This structure defines a sample ring buffer
+ */
 typedef struct{
-	sample *buffer;
-	uint32_t size;
-	sample *buffer_end;
-	sample *write_ptr;
-	sample *read_ptr;
+	sample *buffer;				// Pointer to the sample buffer itself
+	uint32_t size;				// Size of the buffer
+	sample *buffer_end;			// Pointer to the end of the samples buffer, for comparisons
+	sample *write_ptr;			// Writer pointer
+	sample *read_ptr;			// Read pointer
 } ring_buffer_T;
 
 

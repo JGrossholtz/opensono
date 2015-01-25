@@ -9,6 +9,7 @@
 #include "network_client_server.h"
 #include "common.h"
 
+static long int count = 0;
 struct sockaddr_in clientsSock;
 int socket_descriptor;
 
@@ -21,18 +22,18 @@ int init_multicast_server(){
 		perror("socket");
 		exit(1);
 	}
+
+	//Initialize the multicast destination adress
 	bzero((char *)&clientsSock, sizeof(clientsSock));
 	clientsSock.sin_family = AF_INET;
 	clientsSock.sin_addr.s_addr = htonl(INADDR_ANY);
 	clientsSock.sin_port = htons(OPENSONO_DATA_PORT);
-
  	clientsSock.sin_addr.s_addr = inet_addr(MULTICAST_GROUP);
 
 	printf("server network initialized...\n");
 	return 1;
 }
 
-static long int count = 0;
 
 int multicast_server_send(sample * buf){
 	ssize_t sended;
@@ -41,7 +42,7 @@ int multicast_server_send(sample * buf){
 		printf("We where not able to send data (TODO try to fix network in this case) \n");
 	}
 	count++;
-	printf("packet count = %ld\r",count);
+	printf("packet count = %ld\r",count); //debug
 
 	return sended;
 }
